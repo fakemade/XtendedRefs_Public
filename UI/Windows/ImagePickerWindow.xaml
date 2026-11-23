@@ -1,0 +1,66 @@
+<Window x:Class="XtendedRefs.ComAddIn.UI.Windows.ImagePickerWindow"
+        x:ClassModifier="internal"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Выбор"
+        Height="540"
+        Width="920"
+        MinHeight="420"
+        MinWidth="700"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="CanResize">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*" />
+            <ColumnDefinition Width="16" />
+            <ColumnDefinition Width="3*" />
+        </Grid.ColumnDefinitions>
+
+        <GroupBox Grid.Row="0" Grid.Column="0" Header="Список" Padding="4">
+            <ListBox x:Name="ItemsList"
+                     DisplayMemberPath="DisplayText"
+                     MouseDoubleClick="ItemsList_MouseDoubleClick"
+                     SelectionChanged="ItemsList_SelectionChanged"/>
+        </GroupBox>
+
+        <GroupBox Grid.Row="0" Grid.Column="2" Header="Предпросмотр" Padding="4">
+            <Grid>
+                <Image x:Name="PreviewImage"
+                       Stretch="Uniform"
+                       RenderOptions.BitmapScalingMode="HighQuality"
+                       />
+                <TextBlock x:Name="NoPreviewText"
+                           Text="В разработке"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Foreground="Black"
+                           FontStyle="Italic"
+                           Background="Aqua"
+                           Visibility="Visible" />
+            </Grid>
+        </GroupBox>
+
+        <StackPanel Grid.Row="1"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="3"
+                    Margin="0,14,0,0"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Left">
+            <Button x:Name="OkButton"
+                    Width="140"
+                    Height="32"
+                    Margin="0,0,8,0"
+                    IsEnabled="False"
+                    Content="Вставить ссылку"
+                    Click="OkButton_Click" />
+            <Button Width="90"
+                    Height="32"
+                    Content="Отмена"
+                    Click="CancelButton_Click" />
+        </StackPanel>
+    </Grid>
+</Window>

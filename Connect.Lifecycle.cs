@@ -1,0 +1,133 @@
+using System;
+using System.IO;
+using System.Reflection;
+using System.Windows;
+using Extensibility;
+using XtendedRefs.ComAddIn.Application.Composition;
+using XtendedRefs.ComAddIn.Domain;
+using XtendedRefs.ComAddIn.Domain.Abstractions;
+using XtendedRefs.ComAddIn.Features;
+using XtendedRefs.ComAddIn.Infrastructure.Logging;
+using XtendedRefs.ComAddIn.Infrastructure.Previews;
+using Word = Microsoft.Office.Interop.Word;
+using MessageBox = System.Windows.MessageBox;
+using WordApplicationEventHandler = XtendedRefs.ComAddIn.Application.Events.WordApplicationEventHandler;
+
+namespace XtendedRefs.ComAddIn;
+
+public sealed partial class Connect
+{
+    // Runs before the instance constructor. Redirects assembly resolution to the add-in's
+    // own directory, because Word's CLR host does not probe there by default.
+    static Connect()
+    {
+        AppLogger.Instance.Info("Connect static constructor started");
+
+        Assembly self = Assembly.GetExecutingAssembly();
+        string location = self.Location;
+        if (string.IsNullOrEmpty(location))
+        {
+            location = AppContext.BaseDirectory;
+        }
+
+        string addinDir = string.IsNullOrEmpty(location) ? null : Path.GetDirectoryName(location);
+        AppLogger.Instance.Info("Assembly resolve directory: " + (addinDir ?? "<null>"));
+
+        AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
+        {
+            AppLogger.Instance.Info("AssemblyResolve requested: " + args.Name);
+            if (addinDir == null) return null;
+            try
+            {
+                string name = new AssemblyName(args.Name).Name;
+                string path = Path.Combine(addinDir, name + ".dll");
+                if (File.Exists(path))
+                {
+                    AppLogger.Instance.Info("AssemblyResolve loading: " + path);
+                    return Assembly.LoadFrom(path);
+                }
+            }
+            catch (Exception ex)
+            {
+            }
+            
+            return null;
+        };
+        
+    }
+
+    public Connect()
+    {
+        try
+        {
+            _mediaMap = new DocxMediaPreviewMap();
+            Singleton<ServiceLocator>.Initialize(() => new ServiceLocator());
+            Singleton<CommandsLocator>.Initialize(() => new CommandsLocator());
+            _commands = Singleton<CommandsLocator>.Instance;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            throw;
+        }
+    }
+
+    public void OnConnection(object application, ext_ConnectMode connectMode, object addInInst, ref Array custom)
+    {
+        try
+        {
+
+            AddInContext.Application = application as Word.Application;
+            AddInContext.ComAddInInstance = addInInst;
+            AddInContext.ConnectMode = connectMode;
+
+
+            if (AddInContext.Application != null)
+            {
+                _wordEventHandler = new WordApplicationEventHandler(_mediaMap, _ribbon);
+                _wordEventHandler.Subscribe();
+            }
+
+            _instance = this;
+
+        }
+        catch (Exception ex)
+        {
+
+            MessageBox.Show(ex.ToString());
+            throw;
+        }
+    }
+
+    public void OnDisconnection(ext_DisconnectMode removeMode, ref Array custom)
+    {
+
+        try
+        {
+            _wordEventHandler?.Unsubscribe();
+            _wordEventHandler = null;
+            _ribbon = null;
+            AddInContext.Application = null;
+            AddInContext.ComAddInInstance = null;
+
+        }
+        catch (Exception ex)
+        {
+
+            throw;
+        }
+    }
+
+    public void OnAddInsUpdate(ref Array custom)
+    {
+
+    }
+
+    public void OnStartupComplete(ref Array custom)
+    {
+    }
+
+    public void OnBeginShutdown(ref Array custom)
+    {
+    }
+}

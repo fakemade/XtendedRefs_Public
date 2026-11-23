@@ -1,0 +1,54 @@
+<Window x:Class="XtendedRefs.ComAddIn.UI.Windows.ChapterPickerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Главы и параграфы"
+        Height="540"
+        Width="350"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2.2*" />
+            <ColumnDefinition Width="16" />
+        </Grid.ColumnDefinitions>
+        <!-- Left: list + list-management buttons -->
+        <Grid Grid.Row="0" Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <GroupBox Grid.Row="0" Header="Дерево документа" Padding="4">
+                <ListBox x:Name="SourcesList"
+                         DisplayMemberPath="Title"
+                         SelectionChanged="SourcesList_SelectionChanged"
+                         MouseDoubleClick="SourcesList_MouseDoubleClick"
+                         />
+            </GroupBox>
+        </Grid>
+        <!-- Bottom: OK / Cancel -->
+        <StackPanel Grid.Row="1"
+                    Grid.Column="0"
+                    Margin="0,14,0,0"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Left">
+            <Button x:Name="OkButton"
+                    Width="140"
+                    Height="32"
+                    Margin="0,0,8,0"
+                    IsEnabled="False"
+                    Content="Вставить ссылку"
+                    Click="OkButton_OnClick"
+                     />
+            <Button Width="90"
+                    Height="32"
+                    Content="Отмена"
+                    Click="CancelButton_Click"
+                    />
+        </StackPanel>
+    </Grid>
+</Window>

@@ -1,0 +1,190 @@
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="OnRibbonLoad" loadImage="GetImage">
+    <ribbon>
+        <tabs>
+            <tab id="XtendedRefsTab" label="Оформление">
+                <group id="XtendedRefsFiguresGroup" label="Рисунки">
+                    <button
+                            id="XtendedRefsCreateFigureButton"
+                            label="Создать подпись"
+                            size="large"
+                            onAction="OnCreateFigurePressed"
+                            image="create_figure"
+                            screentip="Создание новой подписи рисунка."
+                            supertip="Создает подпись, добавляем закладку и возможность вставки в текст ссылки."/>
+                    <button
+                            id="XtendedRefsDeleteFigureButton"
+                            label="Удалить подпись"
+                            size="large"
+                            onAction="OnDeleteFigurePressed"
+                            image="delete_figure"
+                            screentip="Удаляет подпись к рисунку."
+                            supertip="Позволяет удалить подпись. Курсор должен находится на строке с подписью."/>
+                    <button
+                            id="XtendedRefsInsertFigureReferenceButton"
+                            label="Вставить ссылку"
+                            size="large"
+                            onAction="OnInsertFigureReferencePressed"
+                            image="insert_figure_ref"
+                            screentip="Открыть окно для вставки ссылки."
+                            supertip="Открывает окно для выбора и вставки ссылки на рисунок в текст."/>
+                </group>
+                <group id="XtendedRefsFormulasGroup" label="Формулы">
+                    <button
+                            id="XtendedRefsCreateFormulaButton"
+                            label="Создать формулу"
+                            size="large"
+                            onAction="OnCreateFormulaPressed"
+                            image="create_formula"
+                            screentip="Создает формулу из существующей."
+                            supertip="Для создания формул нужно выделить MathType объект. Создает таблицу, формула по середине, номер справа."/>
+                    <button
+                            id="XtendedRefsDeleteFormulaButton"
+                            label="Удалить формулу"
+                            size="large"
+                            onAction="OnDeleteFormulaPressed"
+                            image="delete_formula"
+                            screentip="Удаляет формулу полностью из текста"
+                            supertip="Удаляется таблица с формулой и номер. Удаляются закладки и все ссылки в тексте."/>
+                    <button
+                            id="XtendedRefsInsertFormulaReferenceButton"
+                            label="Вставить ссылку"
+                            size="large"
+                            onAction="OnInsertFormulaReferencePressed"
+                            image="insert_formula_ref"
+                            screentip="Открыть окно для вставки ссылки."
+                            supertip="Открывается окно для просмотра и вставки ссылки на необходимую формулу в текст."/>
+                </group>
+                <group id="XtendedRefsLiteratureGroup" label="Литература">
+                    <button
+                            id="XtendedRefsAddLiteratureButton"
+                            label="Добавить источник"
+                            size="large"
+                            onAction="OnAddLiteraturePressed"
+                            image="add_literature"
+                            screentip="Добавляет новый источник"
+                            supertip="Создает нумерованную запись литературы и связанные закладки."/>
+                    <button
+                            id="XtendedRefsDeleteLiteratureButton"
+                            label="Удалить источник"
+                            size="large"
+                            onAction="OnDeleteLiteraturePressed"
+                            image="delete_literature"
+                            screentip="Удаляет текущий источник"
+                            supertip="Удаляет источник литературы в текущем абзаце и обновляет ссылки."/>
+                    <button
+                            id="XtendedRefsInsertLiteratureReferenceButton"
+                            label="Вставить ссылку"
+                            size="large"
+                            onAction="OnInsertLiteratureReferencePressed"
+                            image="insert_lit_ref"
+                            screentip="Вставляет ссылку на источник"
+                            supertip="Открывает picker литературы и вставляет REF-поле для выбранного источника."/>
+                </group>
+                <group id="XtendedRefsTablesGroup" label="Таблицы">
+                    <button
+                            id="XtendedRefsCreateTableCaptionButton"
+                            label="Создать подпись"
+                            size="large"
+                            onAction="OnCreateTableCaptionPressed"
+                            image="create_table"
+                            screentip="Создание новой подписи к таблице."
+                            supertip="Создает новую подпись и добавляет ссылку в закладки."/>
+                    <button
+                            id="XtendedRefsDeleteTableCaptionButton"
+                            label="Удалить подпись"
+                            size="large"
+                            onAction="OnDeleteTableCaptionPressed"
+                            image="delete_table"
+                            screentip="Удаляет подпись к таблице"
+                            supertip="Удаление подписи и закладки, а также обновления ссылок в тексте. "/>
+                    <button
+                            id="XtendedRefsInsertTableReferenceButton"
+                            label="Вставить ссылку"
+                            size="large"
+                            onAction="OnInsertTableReferencePressed"
+                            image="insert_table_ref"
+                            screentip="Открыть окно для вставки ссылки на таблицу"
+                            supertip="Открывает окно для выбора и показа таблиц и вставки ссылки в текст. "/>
+                </group>
+                <group id="XtendedRefsChapterGroup" label="Главы">
+                    <button
+                            id="XtendedRefsAddChapterButton"
+                            label="Вставить ссылку"
+                            size="large"
+                            onAction="OnInsertChapterPressed"
+                            image="add_literature"
+                            screentip="Вставить ссылку на главу"
+                            supertip="Создает ссылку на главу в тексте в месте курсора"/>
+                </group>
+                <group id="XtendedRefsSettingsGroup" label="Настройки">
+                    <button
+                            id="XtendedRefsSettingsButton"
+                            label="Настройки"
+                            size="large"
+                            onAction="OnSettingsPressed"
+                            screentip="Настройки документа"
+                            supertip="Открывает окно настройки шаблонов, стилей и уровней нумерации."
+                            image="settings"/>
+                </group>
+                <group id="XtendedRefsToolsGroup" label="Скрипты">
+                    <button
+                            id="XtendedRefsConvertLiteratureBookmarks"
+                            label="Вручную исправить стиль ссылок (TEST)"
+                            onAction="OnConvertLiteratureBookmarksPressed"/>
+                    <button
+                            id="XtendedRefsCreateSubBookmarks"
+                            label="Обновление ссылок на главы в тексте(TEST)"
+                            onAction="OnCreateSubBookmarksPressed"/>
+                    <button
+                            id="XtendedRefsTestLogicalHeadingNumbering"
+                            label="Тест поиска блжайшей главы (TEST)"
+                            onAction="OnTestLogicalHeadingNumberingPressed"
+                            screentip="Показать логический путь главы на позиции курсора"
+                            supertip="Тестовый пример: вычисляет путь главы или параграфа через Word ListFormat и ListValue и показывает, каким префиксом можно пользоваться вместо STYLEREF."/>
+                </group>
+                <group id="XtendedRefsAbout" label="Система">
+                    <button
+                            id="XtendedRefsAboutButton"
+                            label="О программе"
+                            size="large"
+                            screentip="Сведения о программе"
+                            onAction="OnAboutProgramPressed"
+                    />
+                    <button
+                            id="XtendedRefsClearXMLButton"
+                            label="Очистить CustomXML"
+                            size="large"
+                            screentip="Очистка внутренних переменных, содержащихся внутри документа в xml"
+                            onAction="OnClearXmlPressed"
+                    />
+                    <button
+                            id="XtendedRefsScanDocumentButton"
+                            label="Просканировать главы"
+                            size="large"
+                            screentip="Сканирование глав и создание закладок для них"
+                            onAction="OnScanDocumentPressed"
+                    />
+                    <button
+                            id="XtendedRefsRescanDocumentButton"
+                            label="Пересканировать главы"
+                            size="large"
+                            screentip="Сканирование глав и создание закладок для них"
+                            onAction="OnRescanDocumentPressed"
+                    />
+                    <button
+                            id="XtendedRefsDeleteBookmarksByPrefixButton"
+                            label="Удалить закладки формул"
+                            size="large"
+                            onAction="DeleteBookmarksByPrefixPressed"
+                    />
+                    <button
+                            id="XtendedRefsTestButton"
+                            label="Test Button"
+                            size="large"
+                            onAction="OnTestPressed"
+                    />
+                </group>
+            </tab>
+        </tabs>
+    </ribbon>
+</customUI>
