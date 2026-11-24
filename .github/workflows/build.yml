@@ -1,11 +1,34 @@
 name: Build & Package
 
 on:
-  push:
-    branches: [master]
-    tags:    ['v*']
-  pull_request:
-    branches: [master]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Версия сборки (например, 1.2.0 или 1.2.0.0)'
+        required: true
+        type: string
+      configuration:
+        description: 'Конфигурация сборки'
+        required: true
+        default: 'Release'
+        type: choice
+        options:
+          - Release
+          - Debug
+      create_release:
+        description: 'Опубликовать в GitHub Releases (иначе только артефакт)'
+        required: false
+        default: false
+        type: boolean
+      is_prerelease:
+        description: 'Пометить релиз как Pre-release (бета-версия)'
+        required: false
+        default: false
+        type: boolean
+      release_notes:
+        description: 'Дополнительный комментарий к релизу (необязательно)'
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -24,11 +47,13 @@ jobs:
         id: version
         shell: pwsh
         run: |
-          $ref = "${{ github.ref }}"
-          if ($ref -match '^refs/tags/v(\d+\.\d+\.\d+)$') {
-            $ver = "$($Matches[1]).0"
+          $raw = "${{ inputs.version }}".Trim().TrimStart('v')
+          if ($raw -match '^\d+\.\d+\.\d+$') {
+            $ver = "$raw.0"
+          } elseif ($raw -match '^\d+\.\d+\.\d+\.\d+$') {
+            $ver = $raw
           } else {
-            $ver = "0.0.0.${{ github.run_number }}"
+            throw "Неверный формат версии: '$raw'. Используйте формат X.Y.Z или X.Y.Z.W"
           }
           "version=$ver" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           Write-Host "Version: $ver"
@@ -53,7 +78,7 @@ jobs:
         shell: pwsh
         run: |
           msbuild XtendedRefs.ComAddIn.csproj `
-            /p:Configuration=Release `
+            /p:Configuration=${{ inputs.configuration }} `
             /p:PlatformTarget=x86 `
             /p:OutputPath=Installer\bin\x86 `
             /p:AssemblyVersion=${{ steps.version.outputs.version }} `
@@ -65,15 +90,16 @@ jobs:
         shell: pwsh
         run: |
           msbuild XtendedRefs.ComAddIn.csproj `
-            /p:Configuration=Release `
+            /p:Configuration=${{ inputs.configuration }} `
             /p:PlatformTarget=x64 `
             /p:OutputPath=Installer\bin\x64 `
             /p:AssemblyVersion=${{ steps.version.outputs.version }} `
             /p:FileVersion=${{ steps.version.outputs.version }} `
             /t:Rebuild
 
-      # ── Remove PDB files ─────────────────────────────────────────────────────
+      # ── Remove PDB files (только для Release) ────────────────────────────────
       - name: Remove PDB files
+        if: inputs.configuration == 'Release'
         shell: pwsh
         run: |
           Remove-Item Installer\bin\x86\*.pdb -ErrorAction SilentlyContinue
@@ -99,15 +125,18 @@ jobs:
       - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
-          name: installer-${{ steps.version.outputs.version }}
+          name: installer-${{ steps.version.outputs.version }}-${{ inputs.configuration }}
           path: Installer/bin/XtendedRefsInstaller.exe
           if-no-files-found: error
 
-      # ── Create GitHub Release (only on version tags) ─────────────────────────
+      # ── Create GitHub Release (если отмечена галочка) ────────────────────────
       - name: Create Release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: inputs.create_release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ steps.version.outputs.version }}
           name: XtendedRefs ${{ steps.version.outputs.version }}
+          body: ${{ inputs.release_notes }}
+          prerelease: ${{ inputs.is_prerelease }}
           files: Installer/bin/XtendedRefsInstaller.exe
           generate_release_notes: true
