@@ -16,7 +16,6 @@ internal sealed partial class WordApplicationEventHandler
 {
     private void OnDocumentOpen(Word.Document document)
     {
-        // Document-specific singletons are recreated for the active Word document.
         document.Bookmarks.ShowHidden = true;
         
         Singleton<DocumentCommandUtilities>.Initialize(() => new DocumentCommandUtilities(document));
@@ -44,7 +43,6 @@ internal sealed partial class WordApplicationEventHandler
         try
         {
             Connect.Instance.setList(Singleton<RuntimeStore>.Instance.DocumentSettings.LevelStyles);
-            CacheSilently(document);
 
         }
         catch (Exception e)
@@ -94,17 +92,5 @@ internal sealed partial class WordApplicationEventHandler
         }
 
 
-    }
-
-    private static string SafeDocumentName(Word.Document document)
-    {
-        try
-        {
-            return document?.FullName ?? "<null>";
-        }
-        catch
-        {
-            return "<unavailable>";
-        }
     }
 }

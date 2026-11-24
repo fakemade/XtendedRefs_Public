@@ -1,12 +1,8 @@
 using System.Collections.Generic;
 using XtendedRefs.ComAddIn.Application.Utilities;
 using XtendedRefs.ComAddIn.Domain.Models.NewModels;
-using XtendedRefs.ComAddIn.Infrastructure.Clipboard;
-using XtendedRefs.ComAddIn.Infrastructure.Documents;
 using XtendedRefs.ComAddIn.Infrastructure.Events;
-using XtendedRefs.ComAddIn.Infrastructure.Logging;
 using XtendedRefs.ComAddIn.Infrastructure.OfficeCom;
-using XtendedRefs.ComAddIn.Infrastructure.Previews;
 using Word = Microsoft.Office.Interop.Word;
 
 namespace XtendedRefs.ComAddIn.Application.Events;
@@ -14,8 +10,6 @@ namespace XtendedRefs.ComAddIn.Application.Events;
 internal sealed partial class WordApplicationEventHandler
 {
     private readonly Word.Application _application;
-    private readonly ClipboardEmfService _clipboardEmfService;
-    private readonly BookmarkNavigator _bookmarkNavigator;
     private readonly HashSet<System.Windows.Forms.Timer> _activeTimers = new HashSet<System.Windows.Forms.Timer>();
 
     private volatile bool _isMathTypeOpen;
@@ -23,11 +17,9 @@ internal sealed partial class WordApplicationEventHandler
     private long _lastFormulaEnd;
     private IRibbonUI _ribbonUi;
 
-    public WordApplicationEventHandler(DocxMediaPreviewMap mediaMap, IRibbonUI ribbonUi)
+    public WordApplicationEventHandler(IRibbonUI ribbonUi)
     {
         _application = AddInContext.Application;
-        _clipboardEmfService = new ClipboardEmfService();
-        _bookmarkNavigator = new BookmarkNavigator();
         _ribbonUi = ribbonUi;
     }
 

@@ -4,11 +4,7 @@ using System.Reflection;
 using System.Windows;
 using Extensibility;
 using XtendedRefs.ComAddIn.Application.Composition;
-using XtendedRefs.ComAddIn.Domain;
 using XtendedRefs.ComAddIn.Domain.Abstractions;
-using XtendedRefs.ComAddIn.Features;
-using XtendedRefs.ComAddIn.Infrastructure.Logging;
-using XtendedRefs.ComAddIn.Infrastructure.Previews;
 using Word = Microsoft.Office.Interop.Word;
 using MessageBox = System.Windows.MessageBox;
 using WordApplicationEventHandler = XtendedRefs.ComAddIn.Application.Events.WordApplicationEventHandler;
@@ -17,8 +13,6 @@ namespace XtendedRefs.ComAddIn;
 
 public sealed partial class Connect
 {
-    // Runs before the instance constructor. Redirects assembly resolution to the add-in's
-    // own directory, because Word's CLR host does not probe there by default.
     static Connect()
     {
 
@@ -56,7 +50,6 @@ public sealed partial class Connect
     {
         try
         {
-            _mediaMap = new DocxMediaPreviewMap();
             Singleton<ServiceLocator>.Initialize(() => new ServiceLocator());
             Singleton<CommandsLocator>.Initialize(() => new CommandsLocator());
             _commands = Singleton<CommandsLocator>.Instance;
@@ -80,7 +73,7 @@ public sealed partial class Connect
 
             if (AddInContext.Application != null)
             {
-                _wordEventHandler = new WordApplicationEventHandler(_mediaMap, _ribbon);
+                _wordEventHandler = new WordApplicationEventHandler(_ribbon);
                 _wordEventHandler.Subscribe();
             }
 
