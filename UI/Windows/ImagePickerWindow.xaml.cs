@@ -32,17 +32,6 @@ internal partial class ImagePickerWindow : Window
                 break;
             case LinkType.Table:
                 _items = Singleton<ServiceLocator>.Instance.TablePickerService.BuildSourceList();
-                foreach (TableInfo documentAnchor in _items)
-                {
-                    try
-                    {
-                        CommonCommands.ShowInfo(documentAnchor.ToString());
-                    }
-                    catch (Exception ex)
-                    {
-                        CommonCommands.ShowError(ex.ToString());
-                    }
-                }
                 ItemsList.ItemsSource = _items;
                 break;
             default:

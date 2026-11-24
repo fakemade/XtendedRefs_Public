@@ -29,7 +29,8 @@ Invoke-XtendedRefsBuild `
 
 $wordBitness = Get-XtendedRefsWordBitness
 if (-not $wordBitness) {
-    throw "Microsoft Word not found."
+    Write-Warning "Microsoft Word not found. Skipping local COM registration (CI/build-only mode)."
+    exit 0
 }
 
 $dllPath = Join-Path $outputRoot "$wordBitness\XtendedRefs.ComAddIn.dll"
