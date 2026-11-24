@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Controls.Ribbon;
 using System.Xml.Serialization;
 using XtendedRefs.ComAddIn.Domain.Abstractions;
 

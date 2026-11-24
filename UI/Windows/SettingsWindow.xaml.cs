@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using XtendedRefs.ComAddIn.Application.Utilities;
-using XtendedRefs.ComAddIn.Domain;
 using XtendedRefs.ComAddIn.Domain.Abstractions;
 using XtendedRefs.ComAddIn.Domain.Documents;
 using XtendedRefs.ComAddIn.Domain.State;

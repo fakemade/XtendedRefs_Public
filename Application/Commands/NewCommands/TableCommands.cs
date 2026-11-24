@@ -256,6 +256,7 @@ public class TableCommands
 
         try
         {
+            DocumentUtilities.ReplaceAllLinks(doc, LinkType.Table, bmName);
             Word.Bookmark bm = doc.Bookmarks[bmName];
             bm.Delete();
             rs.TableList.Tables.RemoveAll(l => l.BookmarkName == bmName);
