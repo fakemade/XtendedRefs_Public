@@ -8,17 +8,14 @@ using System.Windows;
 using System.Windows.Forms;
 using XtendedRefs.ComAddIn.Application.Commands;
 using XtendedRefs.ComAddIn.Infrastructure.Persistence;
-using XtendedRefs.ComAddIn.Application.Composition;
 using XtendedRefs.ComAddIn.Application.Utilities;
 using XtendedRefs.ComAddIn.Domain.Abstractions;
 using XtendedRefs.ComAddIn.Domain.Documents;
 using XtendedRefs.ComAddIn.Domain.Models.NewModels;
 using XtendedRefs.ComAddIn.Domain.State;
 using XtendedRefs.ComAddIn.Infrastructure.Events;
-using XtendedRefs.ComAddIn.Infrastructure.Logging;
 using XtendedRefs.ComAddIn.Infrastructure.OfficeCom;
 using MessageBox = System.Windows.MessageBox;
-using Point = System.Drawing.Point;
 using Word = Microsoft.Office.Interop.Word;
 
 namespace XtendedRefs.ComAddIn;

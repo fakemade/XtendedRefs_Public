@@ -6,8 +6,6 @@ using System.Reflection;
 using System.Windows.Forms;
 using System.Xml.Serialization;
 using XtendedRefs.ComAddIn.Application.Contracts;
-using XtendedRefs.ComAddIn.Domain.Models.NewModels;
-using XtendedRefs.ComAddIn.Infrastructure.Logging;
 using Office = Microsoft.Office.Core;
 using Word = Microsoft.Office.Interop.Word;
 
@@ -182,11 +180,9 @@ namespace XtendedRefs.ComAddIn.Infrastructure.Persistence
         {
             if (_store.TryGetValue(typeof(T), out var existing))
             {
-                AppLogger.Instance.Info("XmlProvider.Get existing: " + typeof(T).FullName);
                 return (T)existing.Value;
             }
-
-            AppLogger.Instance.Warn("XmlProvider.Get missing: " + typeof(T).FullName);
+            
             return null;
         }
 
@@ -218,11 +214,8 @@ namespace XtendedRefs.ComAddIn.Infrastructure.Persistence
         {
             if (!_store.TryGetValue(typeof(T), out var item))
             {
-                AppLogger.Instance.Warn("XmlProvider.Save skipped missing: " + typeof(T).FullName);
                 return;
             }
-
-            AppLogger.Instance.Info("XmlProvider.Save type: " + typeof(T).FullName);
             SaveItem(item);
         }
 
@@ -259,7 +252,6 @@ namespace XtendedRefs.ComAddIn.Infrastructure.Persistence
         /// </summary>
         private void SaveItem(XmlProviderItem item)
         {
-            AppLogger.Instance.Info("XmlProvider.SaveItem started: " + item.Type.FullName);
             string xml = Serialize(item.Value);
 
             // ВАЖНЫЙ НЮАНС: 
@@ -268,7 +260,6 @@ namespace XtendedRefs.ComAddIn.Infrastructure.Persistence
             item.Part.Delete();
             item.Part = _document.CustomXMLParts.Add(xml);
             
-            AppLogger.Instance.Info("XmlProvider.SaveItem finished: " + item.Type.FullName);
         }
         
         // =========================================
@@ -280,7 +271,6 @@ namespace XtendedRefs.ComAddIn.Infrastructure.Persistence
         /// </summary>
         private string Serialize(object obj)
         {
-            AppLogger.Instance.Info("XmlProvider.Serialize: " + obj.GetType().FullName);
             var serializer = new XmlSerializer(obj.GetType());
 
             using var writer = new StringWriter();
@@ -326,13 +316,11 @@ namespace XtendedRefs.ComAddIn.Infrastructure.Persistence
         {
             if (!_store.TryGetValue(typeof(T), out var item))
             {
-                AppLogger.Instance.Warn("XmlProvider.Remove skipped missing: " + typeof(T).FullName);
                 return;
             }
 
             item.Part.Delete();
             _store.Remove(typeof(T));
-            AppLogger.Instance.Info("XmlProvider.Remove finished: " + typeof(T).FullName);
         }
 
         // =========================================

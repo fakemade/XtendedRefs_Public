@@ -1,11 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using XtendedRefs.ComAddIn.Domain.Abstractions;
-using XtendedRefs.ComAddIn.Domain.Models;
-using XtendedRefs.ComAddIn.Domain.State;
-using XtendedRefs.ComAddIn.Infrastructure.Documents;
-using XtendedRefs.ComAddIn.Infrastructure.Logging;
 using Word = Microsoft.Office.Interop.Word;
 
 namespace XtendedRefs.ComAddIn.Application.Events;

@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
-using XtendedRefs.ComAddIn.Infrastructure.Logging;
 using Word = Microsoft.Office.Interop.Word;
 
 namespace XtendedRefs.ComAddIn.Application.Events;

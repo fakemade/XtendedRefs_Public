@@ -1,7 +1,6 @@
 using System;
 using System.Windows;
 using System.Windows.Interop;
-using XtendedRefs.ComAddIn.Infrastructure.Logging;
 using XtendedRefs.ComAddIn.Infrastructure.OfficeCom;
 using XtendedRefs.ComAddIn.UI.Windows;
 using Word = Microsoft.Office.Interop.Word;
@@ -36,8 +35,7 @@ public sealed partial class Connect
             MessageBox.Show("РќРµС‚ РѕС‚РєСЂС‹С‚РѕРіРѕ РґРѕРєСѓРјРµРЅС‚Р°.", AddInFriendlyName, MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
-
-        AppLogger.Instance.Info("OnSettingsPressed document: " + SafeDocumentName(activeDoc));
+        
         SettingsWindow window = new SettingsWindow(activeDoc);
         try
         {

@@ -75,6 +75,7 @@ internal partial class ImagePickerWindow : Window
 
     private void LoadPreview(string imagePath)
     {
+        /*
         BitmapSource source = WpfImageLoader.TryLoad(imagePath);
         if (source != null)
         {
@@ -86,6 +87,7 @@ internal partial class ImagePickerWindow : Window
             PreviewImage.Source = null;
             NoPreviewText.Visibility = Visibility.Visible;
         }
+        */
     }
 
     private void ItemsList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
