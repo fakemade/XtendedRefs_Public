@@ -209,7 +209,7 @@ public class LiteratureCommands
     {
         RuntimeStore rs = Singleton<RuntimeStore>.Instance;
         Word.Document doc = rs.Document;
-        doc.Fields.Update();
+        doc.Content.Fields.Update();
         Word.Bookmarks bms = doc.Bookmarks;
         foreach (LiteratureInfo lit in rs.LiteratureList.Literature)
         {
@@ -271,7 +271,6 @@ public class LiteratureCommands
     public void DeleteLiteratureTextReference()
     {
         RuntimeStore rs = Singleton<RuntimeStore>.Instance;
-        DocumentSettings documentSettings = rs.DocumentSettings;
         Word.Document doc = rs.Document;
 
         //Параграф, в котором удаляем ссылку
@@ -300,14 +299,12 @@ public class LiteratureCommands
 
         DocumentUtilities.ReplaceAllLinks(doc, LinkType.Literature, bmName);
         Word.Bookmark bm = doc.Bookmarks[bmName];
-        bm.Delete();
+        
         //Удаляем текст вместе с шаблоном
         try
         {
             LiteratureInfo lit = rs.LiteratureList.Literature.Find(x =>x.BookmarkName == bmName);
-            int length = lit.TextRange.Start - lit.TextRange.End;
-            int end = lit.End - length-1;
-            doc.Range(lit.Start, lit.End).Delete();
+            doc.Range(bm.Range.Start, bm.Range.End).Delete();
             rs.LiteratureList.Literature.RemoveAll(l => l.BookmarkName == bmName);
             
         }
@@ -316,7 +313,6 @@ public class LiteratureCommands
             MessageBox.Show(e.ToString());
         }
         Update();
-        MessageBox.Show("Литература удалена, можно стереть лишнее");
         EventBus<LiteratureInfo>.Raise(doc);
     }
 }
