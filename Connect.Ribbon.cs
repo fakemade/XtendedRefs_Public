@@ -27,7 +27,6 @@ public sealed partial class Connect
 {
     public string GetCustomUI(string ribbonId)
     {
-        AppLogger.Instance.Info("GetCustomUI requested. RibbonId=" + ribbonId);
         try
         {
             string xml = LoadRibbonXml("XtendedRefs.ComAddIn.Ribbon.MainRibbon.xml");
@@ -64,7 +63,6 @@ public sealed partial class Connect
 
     public void OnPingButtonPressed(IRibbonControl control)
     {
-        AppLogger.Instance.Info("OnPingButtonPressed");
         string message = AddInContext.IsWordAvailable
             ? "COM add-in loaded and connected to Word."
             : "COM add-in loaded, but Word application is unavailable.";
@@ -278,7 +276,6 @@ public sealed partial class Connect
 
     private static string LoadRibbonXml(string resourceName)
     {
-        AppLogger.Instance.Info("LoadRibbonXml: " + resourceName);
         Assembly assembly = typeof(Connect).Assembly;
         using Stream stream = assembly.GetManifestResourceStream(resourceName)
                               ?? throw new InvalidOperationException($"Ribbon resource '{resourceName}' not found.");

@@ -21,7 +21,6 @@ public sealed partial class Connect
     // own directory, because Word's CLR host does not probe there by default.
     static Connect()
     {
-        AppLogger.Instance.Info("Connect static constructor started");
 
         Assembly self = Assembly.GetExecutingAssembly();
         string location = self.Location;
@@ -31,11 +30,9 @@ public sealed partial class Connect
         }
 
         string addinDir = string.IsNullOrEmpty(location) ? null : Path.GetDirectoryName(location);
-        AppLogger.Instance.Info("Assembly resolve directory: " + (addinDir ?? "<null>"));
 
         AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
         {
-            AppLogger.Instance.Info("AssemblyResolve requested: " + args.Name);
             if (addinDir == null) return null;
             try
             {
@@ -43,7 +40,6 @@ public sealed partial class Connect
                 string path = Path.Combine(addinDir, name + ".dll");
                 if (File.Exists(path))
                 {
-                    AppLogger.Instance.Info("AssemblyResolve loading: " + path);
                     return Assembly.LoadFrom(path);
                 }
             }

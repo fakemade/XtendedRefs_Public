@@ -14,7 +14,6 @@ namespace XtendedRefs.ComAddIn.Application.Events;
 internal sealed partial class WordApplicationEventHandler
 {
     private readonly Word.Application _application;
-    private readonly DocxMediaPreviewMap _mediaMap;
     private readonly ClipboardEmfService _clipboardEmfService;
     private readonly BookmarkNavigator _bookmarkNavigator;
     private readonly HashSet<System.Windows.Forms.Timer> _activeTimers = new HashSet<System.Windows.Forms.Timer>();
@@ -27,7 +26,6 @@ internal sealed partial class WordApplicationEventHandler
     public WordApplicationEventHandler(DocxMediaPreviewMap mediaMap, IRibbonUI ribbonUi)
     {
         _application = AddInContext.Application;
-        _mediaMap = mediaMap;
         _clipboardEmfService = new ClipboardEmfService();
         _bookmarkNavigator = new BookmarkNavigator();
         _ribbonUi = ribbonUi;

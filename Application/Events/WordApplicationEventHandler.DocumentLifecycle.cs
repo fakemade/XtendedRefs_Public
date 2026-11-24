@@ -44,10 +44,6 @@ internal sealed partial class WordApplicationEventHandler
         try
         {
             Connect.Instance.setList(Singleton<RuntimeStore>.Instance.DocumentSettings.LevelStyles);
-
-
-            _mediaMap.LoadForDocument(document);
-
             CacheSilently(document);
 
         }
@@ -64,10 +60,7 @@ internal sealed partial class WordApplicationEventHandler
 
         try
         {
-            ScheduleTask(1500, () => _mediaMap.RebuildAndSave(document));
-
             Singleton<RuntimeStore>.Instance.SaveBeforeClose();
-
         }
         catch (Exception ex)
         {
