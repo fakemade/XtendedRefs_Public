@@ -1,0 +1,113 @@
+name: Build & Package
+
+on:
+  push:
+    branches: [master]
+    tags:    ['v*']
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      # ── Checkout ────────────────────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── Resolve version ─────────────────────────────────────────────────────
+      - name: Resolve version
+        id: version
+        shell: pwsh
+        run: |
+          $ref = "${{ github.ref }}"
+          if ($ref -match '^refs/tags/v(\d+\.\d+\.\d+)$') {
+            $ver = "$($Matches[1]).0"
+          } else {
+            $ver = "0.0.0.${{ github.run_number }}"
+          }
+          "version=$ver" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "Version: $ver"
+
+      # ── Setup MSBuild ────────────────────────────────────────────────────────
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      # ── Setup .NET (только для restore) ──────────────────────────────────────
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.x'
+
+      # ── Restore packages ─────────────────────────────────────────────────────
+      - name: Restore packages
+        shell: pwsh
+        run: dotnet restore XtendedRefs.ComAddIn.csproj
+
+      # ── Build x86 ────────────────────────────────────────────────────────────
+      - name: Build x86
+        shell: pwsh
+        run: |
+          msbuild XtendedRefs.ComAddIn.csproj `
+            /p:Configuration=Release `
+            /p:PlatformTarget=x86 `
+            /p:OutputPath=Installer\bin\x86 `
+            /p:AssemblyVersion=${{ steps.version.outputs.version }} `
+            /p:FileVersion=${{ steps.version.outputs.version }} `
+            /t:Rebuild
+
+      # ── Build x64 ────────────────────────────────────────────────────────────
+      - name: Build x64
+        shell: pwsh
+        run: |
+          msbuild XtendedRefs.ComAddIn.csproj `
+            /p:Configuration=Release `
+            /p:PlatformTarget=x64 `
+            /p:OutputPath=Installer\bin\x64 `
+            /p:AssemblyVersion=${{ steps.version.outputs.version }} `
+            /p:FileVersion=${{ steps.version.outputs.version }} `
+            /t:Rebuild
+
+      # ── Remove PDB files ─────────────────────────────────────────────────────
+      - name: Remove PDB files
+        shell: pwsh
+        run: |
+          Remove-Item Installer\bin\x86\*.pdb -ErrorAction SilentlyContinue
+          Remove-Item Installer\bin\x64\*.pdb -ErrorAction SilentlyContinue
+
+      # ── Install Inno Setup ───────────────────────────────────────────────────
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup --no-progress -y
+
+      # ── Compile installer ────────────────────────────────────────────────────
+      - name: Compile installer
+        shell: pwsh
+        run: |
+          $iscc = Get-ChildItem "C:\Program Files (x86)\Inno Setup*\ISCC.exe" |
+                  Sort-Object Name -Descending | Select-Object -First 1 -ExpandProperty FullName
+          if (-not $iscc) { throw "ISCC.exe not found" }
+          Write-Host "Using: $iscc"
+          & $iscc /DBuildVersion="${{ steps.version.outputs.version }}" Installer\setup.iss
+          if ($LASTEXITCODE -ne 0) { throw "Installer compilation failed" }
+
+      # ── Upload installers as artifacts ───────────────────────────────────────
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer-${{ steps.version.outputs.version }}
+          path: Installer/bin/XtendedRefsInstaller.exe
+          if-no-files-found: error
+
+      # ── Create GitHub Release (only on version tags) ─────────────────────────
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: XtendedRefs ${{ steps.version.outputs.version }}
+          files: Installer/bin/XtendedRefsInstaller.exe
+          generate_release_notes: true
