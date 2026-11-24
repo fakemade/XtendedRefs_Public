@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
-using System.Windows.Media.Animation;
 using XtendedRefs.ComAddIn.Application.Composition;
 using XtendedRefs.ComAddIn.Application.Utilities;
 using XtendedRefs.ComAddIn.Domain.Abstractions;
@@ -250,13 +249,12 @@ public sealed class PictureCommands
 
         // Заменяем все гиперссылки, ссылающиеся на удалённый рисунок, на текст-заглушку
         DocumentUtilities.ReplaceAllLinks(doc, LinkType.Picture, bmName);
-        
+        Word.Bookmark bm = doc.Bookmarks[bmName];
 
         try
         {
-            doc.Bookmarks[bmName].Delete();
+            doc.Range(bm.Range.Start, bm.Range.End).Delete();
             rs.PictureList.Pictures.RemoveAll(l => l.BookmarkName == bmName);
-            paragraph.Range.Text = "\r";
         }
         catch (Exception e)
         {

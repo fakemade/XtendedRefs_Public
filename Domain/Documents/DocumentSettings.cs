@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Serialization;
+using XtendedRefs.ComAddIn.Application.Commands;
 using XtendedRefs.ComAddIn.Domain.Abstractions;
 
 namespace XtendedRefs.ComAddIn.Domain.Documents;
@@ -181,6 +182,7 @@ public class DocumentSettings
             }
             case SymbolType.Table:
             {
+                CommonCommands.ShowInfo(TableSignTemplate);
                 count = TableSignTemplate.Count( c => c == target );
                 break;
             }

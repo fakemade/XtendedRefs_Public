@@ -303,10 +303,8 @@ public class LiteratureCommands
         //Удаляем текст вместе с шаблоном
         try
         {
-            LiteratureInfo lit = rs.LiteratureList.Literature.Find(x =>x.BookmarkName == bmName);
             doc.Range(bm.Range.Start, bm.Range.End).Delete();
             rs.LiteratureList.Literature.RemoveAll(l => l.BookmarkName == bmName);
-            
         }
         catch (Exception e)
         {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using XtendedRefs.ComAddIn.Application.Commands;
 using XtendedRefs.ComAddIn.Domain.Abstractions;
 using XtendedRefs.ComAddIn.Domain.Documents;
 using XtendedRefs.ComAddIn.Domain.Models.NewModels;
@@ -89,105 +90,88 @@ public static class DocumentUtilities
     }
 
     public static void RescanDocument(Word.Document doc, List<LevelStyleItem> styles)
+{
+    RuntimeStore rs = Singleton<RuntimeStore>.Instance;
+    var chapters = rs.ChaptersList.Chapters;
+    
+    var existingRanges = new HashSet<(int start, int end)>();
+    var chapterPositions = new Dictionary<ChapterInfo, int>();
+
+    for (int i = chapters.Count - 1; i >= 0; i--)
     {
-        RuntimeStore rs = Singleton<RuntimeStore>.Instance;
-
-        if (rs.ChaptersList.Chapters.Count == 0)
+        var ch = chapters[i];
+        if (string.IsNullOrEmpty(ch.BookmarkName) || !doc.Bookmarks.Exists(ch.BookmarkName))
         {
-            MessageBox.Show(@"No chapters found");
-            return;
+            chapters.RemoveAt(i);
+            continue;
         }
 
-
-        var existingRanges = new HashSet<(int start, int end)>(
-            rs.ChaptersList.Chapters
-                .Where(c => c.BookmarkName != null && doc.Bookmarks.Exists(c.BookmarkName))
-                .Select(c =>
-                {
-                    Word.Range r = doc.Bookmarks[c.BookmarkName].Range;
-                    return (r.Start, r.End);
-                })
-        );
-
-        //TODO:Добавление в случае удаления какой-либо из глав удаление ее и из списка
-        for (int i = 0; i < styles.Count; i++)
+        Word.Range r = doc.Bookmarks[ch.BookmarkName].Range;
+        existingRanges.Add((r.Start, r.End));
+        chapterPositions[ch] = r.Start;
+        var currentNumbers = ExtractNumbers(r.ListFormat.ListString);
+        if (ch.NumberParts == null || !ch.NumberParts.SequenceEqual(currentNumbers))
         {
-            Word.Range rng = doc.Content;
-            Word.Find find = rng.Find;
-
-            find.ClearFormatting();
-            find.Text = "";
-            find.set_Style(doc.Styles[styles[i].StyleName]);
-            find.Forward = true;
-            find.Wrap = Word.WdFindWrap.wdFindStop;
-
-            while (find.Execute())
-            {
-                Word.Range foundRange = rng.Duplicate;
-                Word.Paragraph paragraph = foundRange.Paragraphs.First;
-                Word.Range paraRange = paragraph.Range;
-
-                var key = (paraRange.Start, paraRange.End);
-
-                if (!existingRanges.Contains(key))
-                {
-                    string bmName = "_ch_" + Guid.NewGuid().ToString("N");
-
-                    doc.Bookmarks.Add(bmName, paraRange);
-
-                    ChapterInfo chInfo = new ChapterInfo(
-                        paraRange.Text,
-                        styles[i].StyleName,
-                        i
-                    );
-
-                    chInfo.BookmarkName = bmName;
-
-                    chInfo.NumberParts = ExtractNumbers(
-                        paraRange.ListFormat.ListString
-                    );
-
-                    rs.ChaptersList.Chapters.Add(chInfo);
-
-                    existingRanges.Add(key);
-                }
-
-                int nextStart = paraRange.End;
-                rng.SetRange(nextStart, doc.Content.End);
-
-                find = rng.Find;
-                find.ClearFormatting();
-                find.Text = "";
-                find.set_Style(doc.Styles[styles[i].StyleName]);
-                find.Forward = true;
-                find.Wrap = Word.WdFindWrap.wdFindStop;
-
-                if (nextStart >= doc.Content.End)
-                    break;
-            }
+            ch.NumberParts = currentNumbers;
         }
-
-        foreach (var chapter in rs.ChaptersList.Chapters)
-        {
-            if (!doc.Bookmarks.Exists(chapter.BookmarkName))
-                continue;
-
-            var range = doc.Bookmarks[chapter.BookmarkName].Range;
-
-            var current = ExtractNumbers(range.ListFormat.ListString);
-
-            if (!chapter.NumberParts.SequenceEqual(current))
-            {
-                chapter.NumberParts = current;
-            }
-        }
-
-        rs.ChaptersList.Chapters.Sort((a, b) =>
-            a.Level != b.Level
-                ? a.Level.CompareTo(b.Level)
-                : CompareParts(a.NumberParts, b.NumberParts)
-        );
     }
+    for (int i = 0; i < styles.Count; i++)
+    {
+        string styleName = styles[i].StyleName;
+        Word.Style targetStyle;
+        try
+        {
+            targetStyle = doc.Styles[styleName];
+        }
+        catch
+        {
+            continue;
+        }
+        Word.Range rng = doc.Content;
+        Word.Find find = rng.Find;
+        find.ClearFormatting();
+        find.Text = "";
+        find.set_Style(targetStyle);
+        find.Forward = true;
+        find.Wrap = Word.WdFindWrap.wdFindStop;
+        while (find.Execute())
+        {
+            Word.Range paraRange = rng.Paragraphs.First.Range;
+            if (paraRange.End > paraRange.Start)
+            {
+                paraRange.End -= 1; 
+            }
+
+            var key = (paraRange.Start, paraRange.End);
+
+            if (!existingRanges.Contains(key))
+            {
+                string bmName = "_ch_" + Guid.NewGuid().ToString("N");
+                doc.Bookmarks.Add(bmName, paraRange);
+
+                string cleanTitle = paraRange.Text?.TrimEnd('\r', '\a', '\n') ?? string.Empty;
+
+                var chInfo = new ChapterInfo(cleanTitle, styleName, i)
+                {
+                    BookmarkName = bmName,
+                    NumberParts = ExtractNumbers(paraRange.ListFormat.ListString)
+                };
+
+                chapters.Add(chInfo);
+                existingRanges.Add(key);
+                chapterPositions[chInfo] = paraRange.Start;
+            }
+            rng.Collapse(Word.WdCollapseDirection.wdCollapseEnd);
+        }
+    }
+    if (chapters.Count == 0)
+    {
+        MessageBox.Show(@"No chapters found");
+        return;
+    }
+    chapters.Sort((a, b) => chapterPositions[a].CompareTo(chapterPositions[b]));
+}
+
 
 
     public static List<string> ExtractNumbers(string input)
@@ -456,37 +440,47 @@ public static class DocumentUtilities
     
 
     public static List<ChapterInfo> FindNearChaptersByTemplate(Word.Document doc, SymbolType type)
+{
+    RuntimeStore rs = Singleton<RuntimeStore>.Instance;
+    int sCount = rs.DocumentSettings.GetSymbolCount(type);
+    int position = doc.ActiveWindow.Selection.Range.Start;
+    var chaptersBeforeCursor = new List<(ChapterInfo Info, int Start)>();
+    foreach (var c in rs.ChaptersList.Chapters)
     {
-        RuntimeStore rs = Singleton<RuntimeStore>.Instance;
-
-        DocumentSettings docSettings = rs.DocumentSettings;
-        int sCount = docSettings.GetSymbolCount(type);
-        Word.Range sel = doc.ActiveWindow.Selection.Range;
-        int position = sel.Start;
-
-
-        List<ChapterInfo> nearest = rs.ChaptersList.Chapters
-            .Where(c =>
-            {
-                var bookmark = doc.Bookmarks[c.BookmarkName];
-                return bookmark != null && (int)bookmark.Range.Start <= position;
-            })
-            .GroupBy(c => c.StyleName)
-            .Select(group => group
-                .OrderByDescending(c => (int)doc.Bookmarks[c.BookmarkName].Range.Start)
-                .First()
-            )
-            .OrderBy(c => (int)doc.Bookmarks[c.BookmarkName].Range.Start)
-            .Take(sCount)
-            .ToList();
-
-        if (nearest.Count != sCount & sCount > 1)
+        if (doc.Bookmarks.Exists(c.BookmarkName))
         {
-            throw new Exception("Количество глав не совпадает с шаблоном. Очевидно, что курсор стоит не в том месте!");
+            int start = doc.Bookmarks[c.BookmarkName].Range.Start;
+            if (start <= position)
+            {
+                chaptersBeforeCursor.Add((c, start));
+            }
         }
-        
-        return nearest;
     }
+    chaptersBeforeCursor = chaptersBeforeCursor.OrderBy(x => x.Start).ToList();
+    var hierarchy = new List<(ChapterInfo Info, int Start)>();
+    foreach (var item in chaptersBeforeCursor)
+    {
+        int existingIndex = hierarchy.FindIndex(h => h.Info.StyleName == item.Info.StyleName);
+        if (existingIndex != -1)
+        {
+            hierarchy.RemoveRange(existingIndex, hierarchy.Count - existingIndex);
+        }
+        hierarchy.Add(item);
+    }
+    List<ChapterInfo> nearest = hierarchy
+        .Take(sCount)
+        .Select(x => x.Info)
+        .ToList();
+
+    if (nearest.Count != sCount && sCount > 0)
+    {
+        CommonCommands.ShowInfo($"sCount = {sCount}, nearest.Count = {nearest.Count}");
+        throw new Exception("Количество глав не совпадает с шаблоном. Очевидно, что курсор стоит не в том месте!");
+    }
+
+    return nearest;
+}
+
 
     public static int CountSymbols(char symbol, string countString)
     {

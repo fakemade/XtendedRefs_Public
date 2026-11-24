@@ -31,16 +31,13 @@ public class TableCommands
 
         try
         {
-        // Собираем шаблон, стиль и разделитель
+            // Собираем шаблон, стиль и разделитель
             string template = documentSettings.TableSignTemplate;
             string styleName = documentSettings.TableStyle;
 
             // Берём место курсора и параграф
             Word.Selection selection = doc.ActiveWindow.Selection;
             Word.Paragraph paragraph = selection.Paragraphs[1];
-            Word.Range tRange = paragraph.Range.Duplicate;
-            tRange.End -= 1;
-
             paragraph.KeepWithNext = -1;
             
             // Если назначен стиль, применяем
@@ -67,7 +64,9 @@ public class TableCommands
 
             // Ищем $ для вставки поля.
             List<ChapterInfo> chapters = DocumentUtilities.FindNearChaptersByTemplate(doc, SymbolType.Table);
-
+            
+            CommonCommands.ShowInfo(chapters.Count.ToString());
+            
             Word.Find find = findRange.Find;
             find.Text = "$";
             find.Wrap = Word.WdFindWrap.wdFindStop;
@@ -85,7 +84,7 @@ public class TableCommands
                 tbField = targetRange.Fields.Add(
                     dollar,
                     Word.WdFieldType.wdFieldSequence,
-                    @"Table_seq \* MERGEFORMAT"
+                    @"Table_seq"
                 );
                 forNumParts = tbField.Result.Text;
             }
@@ -105,7 +104,7 @@ public class TableCommands
                         tbField = targetRange.Fields.Add(
                             dollar,
                             Word.WdFieldType.wdFieldSequence,
-                            $"Table_{string.Join("", nums)}_seq \\* MERGEFORMAT"
+                            $"Table_{string.Join("", nums)}_seq"
                         );
                         forNumParts += tbField.Result.Text;
                     }
@@ -258,9 +257,8 @@ public class TableCommands
         {
             DocumentUtilities.ReplaceAllLinks(doc, LinkType.Table, bmName);
             Word.Bookmark bm = doc.Bookmarks[bmName];
-            bm.Delete();
+            doc.Range(bm.Range.Start, bm.Range.End).Delete();
             rs.TableList.Tables.RemoveAll(l => l.BookmarkName == bmName);
-            paragraph.Range.Text = "\r";
         }
         catch (Exception e)
         {
