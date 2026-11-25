@@ -7,7 +7,6 @@ using XtendedRefs.ComAddIn.Application.Utilities;
 using XtendedRefs.ComAddIn.Domain.Abstractions;
 using XtendedRefs.ComAddIn.Domain.Documents;
 using XtendedRefs.ComAddIn.Domain.State;
-using XtendedRefs.ComAddIn.Infrastructure.Documents;
 using Word = Microsoft.Office.Interop.Word;
 
 namespace XtendedRefs.ComAddIn.UI.Windows;
