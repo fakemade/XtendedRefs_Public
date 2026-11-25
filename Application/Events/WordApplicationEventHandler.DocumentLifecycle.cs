@@ -26,8 +26,12 @@ internal sealed partial class WordApplicationEventHandler
         Singleton<RuntimeStore>.Initialize(() => new RuntimeStore(doc, Singleton<XmlProvider>.Instance));
         Singleton<RuntimeStore>.Instance.Init();
         //Scan document
-        DocumentUtilities.ScanChapters(doc, Singleton<RuntimeStore>.Instance.DocumentSettings.LevelStyles);
-        Singleton<RuntimeStore>.Instance.DocumentSettings.IsScanned = true;
+        if(!Singleton<RuntimeStore>.Instance.DocumentSettings.IsScanned)
+        {
+            DocumentUtilities.ScanChapters(doc, Singleton<RuntimeStore>.Instance.DocumentSettings.LevelStyles);
+            Singleton<RuntimeStore>.Instance.DocumentSettings.IsScanned = true;
+        }
+
     }
 
     private void OnDocumentBeforeSave(Word.Document document, ref bool saveAsUI, ref bool cancel)

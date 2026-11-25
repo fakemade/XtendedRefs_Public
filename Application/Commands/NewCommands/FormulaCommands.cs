@@ -20,7 +20,7 @@ public class FormulaCommands
         DocumentSettings documentSettings = rs.DocumentSettings;
         
         //Rescan chapters
-        DocumentUtilities.RescanDocument(doc, rs.DocumentSettings.LevelStyles);
+        DocumentUtilities.RescanDocument2(doc, rs.DocumentSettings.LevelStyles);
         
         Word.Selection selection = doc.Application.Selection;
         Word.Paragraph currentParagraph = selection.Paragraphs[1];
@@ -109,6 +109,7 @@ public class FormulaCommands
 
             //Получаем количество символов местозаполнителя для формулы.
             List<ChapterInfo> chapters = DocumentUtilities.FindNearChaptersByTemplate(doc, SymbolType.Formula);
+            int sCount = rs.DocumentSettings.GetSymbolCount(SymbolType.Formula);
 
 
             Word.Find find = findRange.Find;
@@ -118,7 +119,7 @@ public class FormulaCommands
 
             string forNumParts = string.Empty;
 
-            if (chapters.Count == 0 | chapters.Count == 1)
+            if (sCount == 1)
             {
                 find.Execute();
 
@@ -136,7 +137,7 @@ public class FormulaCommands
             else
             {
                 List<string> nums = new List<string>();
-                for (int i = 0; i < chapters.Count; i++)
+                for (int i = 0; i <= chapters.Count; i++)
                 {
                     find.Execute();
                     Word.Range hit = findRange.Duplicate;
@@ -144,7 +145,7 @@ public class FormulaCommands
                     dollar.End = dollar.Start + 1;
                     dollar.Text = "";
 
-                    if (i == chapters.Count - 1)
+                    if (i == chapters.Count)
                     {
                         fmField = targetRange.Fields.Add(
                             dollar,

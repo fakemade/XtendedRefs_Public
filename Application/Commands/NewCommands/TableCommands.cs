@@ -31,7 +31,7 @@ public class TableCommands
         
         //Rescan chapters
 
-        DocumentUtilities.RescanDocument(doc, rs.DocumentSettings.LevelStyles);
+        DocumentUtilities.RescanDocument2(doc, rs.DocumentSettings.LevelStyles);
    
         try
         {
@@ -68,14 +68,14 @@ public class TableCommands
 
             // Ищем $ для вставки поля.
             List<ChapterInfo> chapters = DocumentUtilities.FindNearChaptersByTemplate(doc, SymbolType.Table);
-            
+            int sCount = rs.DocumentSettings.GetSymbolCount(SymbolType.Table);
             Word.Find find = findRange.Find;
             find.Text = "$";
             find.Wrap = Word.WdFindWrap.wdFindStop;
             Word.Field tbField = null;
             string forNumParts = string.Empty;
 
-            if (chapters.Count == 0 || chapters.Count == 1)
+            if (sCount == 1)
             {
                 find.Execute();
 
@@ -93,7 +93,7 @@ public class TableCommands
             else
             {
                 List<string> nums = new List<string>();
-                for (int i = 0; i < chapters.Count; i++)
+                for (int i = 0; i <= chapters.Count; i++)
                 {
                     find.Execute();
                     Word.Range hit = findRange.Duplicate;
@@ -101,7 +101,7 @@ public class TableCommands
                     dollar.End = dollar.Start + 1;
                     dollar.Text = "";
 
-                    if (i == chapters.Count - 1)
+                    if (i == chapters.Count)
                     {
                         tbField = targetRange.Fields.Add(
                             dollar,

@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Microsoft.Office.Interop.Word;
-using XtendedRefs.ComAddIn.Application.Commands;
 using XtendedRefs.ComAddIn.Application.Contracts;
 using XtendedRefs.ComAddIn.Application.Utilities;
 using XtendedRefs.ComAddIn.Domain.Abstractions;

@@ -26,7 +26,7 @@ public class LiteratureCommands
         doc.ActiveWindow.Application.ScreenUpdating = false;
 
         //Rescan chapters
-        DocumentUtilities.RescanDocument(doc, rs.DocumentSettings.LevelStyles);
+        DocumentUtilities.RescanDocument2(doc, rs.DocumentSettings.LevelStyles);
         
         try
         {
@@ -65,12 +65,14 @@ public class LiteratureCommands
             //------------
 
             List<ChapterInfo> chapters = DocumentUtilities.FindNearChaptersByTemplate(doc, SymbolType.Literature);
+            int sCount = rs.DocumentSettings.GetSymbolCount(SymbolType.Literature);
+            
             Word.Find find = findRange.Find;
             find.Text = "$";
             find.Wrap = Word.WdFindWrap.wdFindStop;
             Word.Field litField = null;
             string forNumParts = string.Empty;
-            if (chapters.Count == 0 | chapters.Count == 1)
+            if (sCount == 1)
             {
                 find.Execute();
                 
@@ -88,7 +90,7 @@ public class LiteratureCommands
             else
             {
                 List<string> nums = new List<string>();
-                for (int i = 0; i < chapters.Count; i++)
+                for (int i = 0; i <= chapters.Count; i++)
                 {
                     find.Execute();
                     Word.Range hit = findRange.Duplicate;
@@ -96,7 +98,7 @@ public class LiteratureCommands
                     dollar.End = dollar.Start + 1;
                     dollar.Text = "";
 
-                    if (i == chapters.Count - 1)
+                    if (i == chapters.Count)
                     {
                         litField = targetRange.Fields.Add(
                             dollar,

@@ -89,87 +89,102 @@ public static class DocumentUtilities
         return a.Count.CompareTo(b.Count);
     }
 
-    public static void RescanDocument(Word.Document doc, List<LevelStyleItem> styles)
-{
-    RuntimeStore rs = Singleton<RuntimeStore>.Instance;
-    var chapters = rs.ChaptersList.Chapters;
+    public static void RescanDocument2(Word.Document doc, List<LevelStyleItem> styles)
+    {
+        RuntimeStore rs = Singleton<RuntimeStore>.Instance;
+        rs.ChaptersList.Chapters.Clear();
+        rs.ChaptersList.Chapters = ScanChapters(rs.Document, rs.DocumentSettings.LevelStyles);
+    }
     
-    var existingRanges = new HashSet<(int start, int end)>();
-    var chapterPositions = new Dictionary<ChapterInfo, int>();
-
-    for (int i = chapters.Count - 1; i >= 0; i--)
+    
+    public static void RescanDocument(Word.Document doc, List<LevelStyleItem> styles)
     {
-        var ch = chapters[i];
-        if (string.IsNullOrEmpty(ch.BookmarkName) || !doc.Bookmarks.Exists(ch.BookmarkName))
-        {
-            chapters.RemoveAt(i);
-            continue;
-        }
+        RuntimeStore rs = Singleton<RuntimeStore>.Instance;
+        List<ChapterInfo> chapters = rs.ChaptersList.Chapters;
 
-        Word.Range r = doc.Bookmarks[ch.BookmarkName].Range;
-        existingRanges.Add((r.Start, r.End));
-        chapterPositions[ch] = r.Start;
-        var currentNumbers = ExtractNumbers(r.ListFormat.ListString);
-        if (ch.NumberParts == null || !ch.NumberParts.SequenceEqual(currentNumbers))
+        var existingRanges = new HashSet<(int start, int end)>();
+        var chapterPositions = new Dictionary<ChapterInfo, int>();
+        
+        
+        for (int i = chapters.Count - 1; i >= 0; i--)
         {
-            ch.NumberParts = currentNumbers;
-        }
-    }
-    for (int i = 0; i < styles.Count; i++)
-    {
-        string styleName = styles[i].StyleName;
-        Word.Style targetStyle;
-        try
-        {
-            targetStyle = doc.Styles[styleName];
-        }
-        catch
-        {
-            continue;
-        }
-        Word.Range rng = doc.Content;
-        Word.Find find = rng.Find;
-        find.ClearFormatting();
-        find.Text = "";
-        find.set_Style(targetStyle);
-        find.Forward = true;
-        find.Wrap = Word.WdFindWrap.wdFindStop;
-        while (find.Execute())
-        {
-            Word.Range paraRange = rng.Paragraphs.First.Range;
-            if (paraRange.End > paraRange.Start)
+            ChapterInfo ch = chapters[i];
+            
+            if (string.IsNullOrEmpty(ch.BookmarkName) || !doc.Bookmarks.Exists(ch.BookmarkName))
             {
-                paraRange.End -= 1; 
+                chapters.RemoveAt(i);
+                continue;
             }
 
-            var key = (paraRange.Start, paraRange.End);
-
-            if (!existingRanges.Contains(key))
+            Word.Range r = doc.Bookmarks[ch.BookmarkName].Range;
+            existingRanges.Add((r.Start, r.End));
+            chapterPositions[ch] = r.Start;
+            var currentNumbers = ExtractNumbers(r.ListFormat.ListString);
+            if (ch.NumberParts == null || !ch.NumberParts.SequenceEqual(currentNumbers))
             {
-                string bmName = "_ch_" + Guid.NewGuid().ToString("N");
-                doc.Bookmarks.Add(bmName, paraRange);
+                ch.NumberParts = currentNumbers;
+            }
+        }
+        
+        CommonCommands.ShowInfo(chapters.Count.ToString());
+        
+        for (int i = 0; i < styles.Count; i++)
+        {
+            string styleName = styles[i].StyleName;
+            Word.Style targetStyle;
+            try
+            {
+                targetStyle = doc.Styles[styleName];
+            }
+            catch
+            {
+                continue;
+            }
 
-                string cleanTitle = paraRange.Text?.TrimEnd('\r', '\a', '\n') ?? string.Empty;
+            Word.Range rng = doc.Content;
+            Word.Find find = rng.Find;
+            find.ClearFormatting();
+            find.Text = "";
+            find.set_Style(targetStyle);
+            find.Forward = true;
+            find.Wrap = Word.WdFindWrap.wdFindStop;
+            while (find.Execute())
+            {
+                Word.Range paraRange = rng.Paragraphs.First.Range;
 
-                var chInfo = new ChapterInfo(cleanTitle, styleName, i)
+                (int Start, int End) key = (paraRange.Start, paraRange.End);
+            
+                if (!existingRanges.Contains(key))
                 {
-                    BookmarkName = bmName,
-                    NumberParts = ExtractNumbers(paraRange.ListFormat.ListString)
-                };
+                    string bmName = "_ch_" + Guid.NewGuid().ToString("N");
+                    doc.Bookmarks.Add(bmName, paraRange);
 
-                chapters.Add(chInfo);
-                existingRanges.Add(key);
-                chapterPositions[chInfo] = paraRange.Start;
+                    string cleanTitle = paraRange.Text?.TrimEnd('\r', '\a', '\n') ?? string.Empty;
+
+                    var chInfo = new ChapterInfo(cleanTitle, styleName, i)
+                    {
+                        BookmarkName = bmName,
+                        NumberParts = ExtractNumbers(paraRange.ListFormat.ListString)
+                    };
+
+                    chapters.Add(chInfo);
+                    existingRanges.Add(key);
+                    chapterPositions[chInfo] = paraRange.Start;
+                }
+
+                rng.Collapse(Word.WdCollapseDirection.wdCollapseEnd);
             }
-            rng.Collapse(Word.WdCollapseDirection.wdCollapseEnd);
         }
+        
+        CommonCommands.ShowInfo(chapters.Count.ToString());
+        
+        if (chapters.Count == 0)
+        {
+            return;
+        }
+
+        chapters.Sort((a, b) => chapterPositions[a].CompareTo(chapterPositions[b]));
     }
-    if (chapters.Count == 0)
-    {
-        return;
-    }
-    chapters.Sort((a, b) => chapterPositions[a].CompareTo(chapterPositions[b]));
-}
 
 
 
@@ -281,7 +296,7 @@ public static class DocumentUtilities
 
     public static bool UpdateLiteratureFields(Word.Document doc)
     {
-        doc.Application.ScreenUpdating = false;          // Отключаем прорисовку интерфейса
+        doc.Application.ScreenUpdating = false; // Отключаем прорисовку интерфейса
         doc.Application.DisplayAlerts = Word.WdAlertLevel.wdAlertsNone; // Отключаем всплывающие окна
         doc.ActiveWindow.View.ShowFieldCodes = true; // Включаем коды полей, чтобы Find их видел
         try
@@ -290,24 +305,26 @@ public static class DocumentUtilities
             Word.Find find = range.Find;
 
             find.ClearFormatting();
-            find.Text = $"^d Literature_Seq"; 
+            find.Text = $"^d Literature_Seq";
             find.Forward = true;
             find.Wrap = Word.WdFindWrap.wdFindStop;
             while (find.Execute())
             {
                 if (range.Fields.Count > 0)
                 {
-                    range.Fields[1].Update(); 
+                    range.Fields[1].Update();
                 }
-                
+
                 range.Collapse(Word.WdCollapseDirection.wdCollapseEnd);
             }
+
             System.Runtime.InteropServices.Marshal.ReleaseComObject(find);
             System.Runtime.InteropServices.Marshal.ReleaseComObject(range);
         }
         catch (Exception ex)
         {
-            MessageBox.Show($@"Ошибка при обновлении: {ex.Message}", @"Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show($@"Ошибка при обновлении: {ex.Message}", @"Ошибка", MessageBoxButtons.OK,
+                MessageBoxIcon.Error);
         }
         finally
         {
@@ -315,10 +332,10 @@ public static class DocumentUtilities
             doc.Application.DisplayAlerts = Word.WdAlertLevel.wdAlertsAll;
             doc.Application.ScreenUpdating = true;
         }
-        
+
         //----------------
-        
-        
+
+
         return true;
     }
 
@@ -349,8 +366,8 @@ public static class DocumentUtilities
         Dictionary<LiteratureInfo, List<Word.Hyperlink>> links = GetLiteratureLinks(doc);
         return UpdateHyperlinks(doc, links);
     }
-    
-    
+
+
     private static Dictionary<PictureInfo, List<Word.Hyperlink>> GetPictureLinks(Word.Document doc)
     {
         RuntimeStore rs = Singleton<RuntimeStore>.Instance;
@@ -378,8 +395,8 @@ public static class DocumentUtilities
         Dictionary<PictureInfo, List<Word.Hyperlink>> links = GetPictureLinks(doc);
         return UpdateHyperlinks(doc, links);
     }
-    
-    
+
+
     private static Dictionary<FormulaInfo, List<Word.Hyperlink>> GetFormulaLinks(Word.Document doc)
     {
         RuntimeStore rs = Singleton<RuntimeStore>.Instance;
@@ -407,8 +424,8 @@ public static class DocumentUtilities
         Dictionary<FormulaInfo, List<Word.Hyperlink>> links = GetFormulaLinks(doc);
         return UpdateHyperlinks(doc, links);
     }
-    
-    
+
+
     private static Dictionary<TableInfo, List<Word.Hyperlink>> GetTableLinks(Word.Document doc)
     {
         RuntimeStore rs = Singleton<RuntimeStore>.Instance;
@@ -436,53 +453,56 @@ public static class DocumentUtilities
         Dictionary<TableInfo, List<Word.Hyperlink>> links = GetTableLinks(doc);
         return UpdateHyperlinks(doc, links);
     }
-    
+
 
     public static List<ChapterInfo> FindNearChaptersByTemplate(Word.Document doc, SymbolType type)
-{
-    RuntimeStore rs = Singleton<RuntimeStore>.Instance;
-    int sCount = rs.DocumentSettings.GetSymbolCount(type);
-    int position = doc.ActiveWindow.Selection.Range.Start;
-    var chaptersBeforeCursor = new List<(ChapterInfo Info, int Start)>();
-    foreach (var c in rs.ChaptersList.Chapters)
     {
-        if (doc.Bookmarks.Exists(c.BookmarkName))
+        RuntimeStore rs = Singleton<RuntimeStore>.Instance;
+        int sCount = rs.DocumentSettings.GetSymbolCount(type);
+        int position = doc.ActiveWindow.Selection.Range.Start;
+        var chaptersBeforeCursor = new List<(ChapterInfo Info, int Start)>();
+        foreach (var c in rs.ChaptersList.Chapters)
         {
-            int start = doc.Bookmarks[c.BookmarkName].Range.Start;
-            if (start <= position)
+            if (doc.Bookmarks.Exists(c.BookmarkName))
             {
-                chaptersBeforeCursor.Add((c, start));
+                int start = doc.Bookmarks[c.BookmarkName].Range.Start;
+                if (start <= position)
+                {
+                    chaptersBeforeCursor.Add((c, start));
+                }
             }
         }
-    }
-    chaptersBeforeCursor = chaptersBeforeCursor.OrderBy(x => x.Start).ToList();
-    var hierarchy = new List<(ChapterInfo Info, int Start)>();
-    foreach (var item in chaptersBeforeCursor)
-    {
-        int existingIndex = hierarchy.FindIndex(h => h.Info.StyleName == item.Info.StyleName);
-        if (existingIndex != -1)
+
+        chaptersBeforeCursor = chaptersBeforeCursor.OrderBy(x => x.Start).ToList();
+        var hierarchy = new List<(ChapterInfo Info, int Start)>();
+        foreach (var item in chaptersBeforeCursor)
         {
-            hierarchy.RemoveRange(existingIndex, hierarchy.Count - existingIndex);
+            int existingIndex = hierarchy.FindIndex(h => h.Info.StyleName == item.Info.StyleName);
+            if (existingIndex != -1)
+            {
+                hierarchy.RemoveRange(existingIndex, hierarchy.Count - existingIndex);
+            }
+
+            hierarchy.Add(item);
         }
-        hierarchy.Add(item);
-    }
-    List<ChapterInfo> nearest = hierarchy
-        .Take(sCount)
-        .Select(x => x.Info)
-        .ToList();
 
-    if (nearest.Count != sCount - 1  && sCount > 0)
-    {
-        throw new Exception("Количество глав не совпадает с шаблоном!");
-    }
+        List<ChapterInfo> nearest = hierarchy
+            .Take(sCount-1)
+            .Select(x => x.Info)
+            .ToList();
 
-    return nearest;
-}
+        if (nearest.Count != sCount-1 && sCount >= 1)
+        {
+            throw new Exception("Количество глав не совпадает с шаблоном!");
+        }
+
+        return nearest;
+    }
 
 
     public static int CountSymbols(char symbol, string countString)
     {
-        return countString.Count(s=> s == symbol);
+        return countString.Count(s => s == symbol);
     }
 
     public static string GetPrefix(LinkType linkType)
@@ -498,49 +518,48 @@ public static class DocumentUtilities
             case LinkType.Table:
                 return "_tb_";
         }
+
         return string.Empty;
     }
-    
+
     public static void ReplaceAllLinks(Word.Document doc, LinkType linkType, string bookmarkName)
     {
-        
         List<Word.Hyperlink> hyperlinks = doc.Hyperlinks
             .Cast<Word.Hyperlink>()
             .Where(h => h.SubAddress.Contains(bookmarkName))
             .ToList();
-        
-                
-                for (int i = hyperlinks.Count-1; i >=0 ; i--)
-                {
-                    Word.Hyperlink link = hyperlinks[i];
-                    string newtext = string.Empty;
-                    switch (linkType)
-                    {
-                        case LinkType.Literature:
-                            newtext = string.Join(" ", "Здесь была ссылка на бывший источник литературы", link.TextToDisplay);
-                            break;
-                       
-                        case LinkType.Formula:
-                            newtext = string.Join(" ", "Здесь была ссылка на бывшую формулу", link.TextToDisplay);
-                            break;
-                        
-                        case LinkType.Picture:
-                            newtext = string.Join(" ", "Здесь была ссылка на бывший рисунок", link.TextToDisplay);
-                            break;
-                        
-                        case LinkType.Table:
-                            newtext = string.Join(" ", "Здесь была ссылка на бывшую таблицу", link.TextToDisplay);
-                            break;
-                    }
 
-                    link.TextToDisplay = newtext;
-                    link.Range.HighlightColorIndex = Word.WdColorIndex.wdYellow;
-                    link.Delete();
-                    System.Runtime.InteropServices.Marshal.ReleaseComObject(link);
-                    
+
+        for (int i = hyperlinks.Count - 1; i >= 0; i--)
+        {
+            Word.Hyperlink link = hyperlinks[i];
+            string newtext = string.Empty;
+            switch (linkType)
+            {
+                case LinkType.Literature:
+                    newtext = string.Join(" ", "Здесь была ссылка на бывший источник литературы", link.TextToDisplay);
+                    break;
+
+                case LinkType.Formula:
+                    newtext = string.Join(" ", "Здесь была ссылка на бывшую формулу", link.TextToDisplay);
+                    break;
+
+                case LinkType.Picture:
+                    newtext = string.Join(" ", "Здесь была ссылка на бывший рисунок", link.TextToDisplay);
+                    break;
+
+                case LinkType.Table:
+                    newtext = string.Join(" ", "Здесь была ссылка на бывшую таблицу", link.TextToDisplay);
+                    break;
+            }
+
+            link.TextToDisplay = newtext;
+            link.Range.HighlightColorIndex = Word.WdColorIndex.wdYellow;
+            link.Delete();
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(link);
         }
-        
     }
+
     public static List<string> GetParagraphStyleNames(Word.Document doc)
     {
         List<string> styles = new List<string>();

@@ -210,7 +210,8 @@ public sealed partial class Connect
         {
             RuntimeStore rs = Singleton<RuntimeStore>.Instance;
             DocumentSettings documentSettings = rs.DocumentSettings;
-            DocumentUtilities.RescanDocument(rs.Document, documentSettings.LevelStyles);
+            rs.ChaptersList.Chapters.Clear();
+            rs.ChaptersList.Chapters = DocumentUtilities.ScanChapters(rs.Document, documentSettings.LevelStyles);
             MessageBox.Show("Пересканирование прошло успешно!");
         }
         catch (Exception e)

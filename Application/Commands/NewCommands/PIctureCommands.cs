@@ -29,7 +29,7 @@ public sealed class PictureCommands
         doc.ActiveWindow.Application.Options.Pagination = false;
         
         //Rescan chapters
-        DocumentUtilities.RescanDocument(doc, rs.DocumentSettings.LevelStyles);
+        DocumentUtilities.RescanDocument2(doc, rs.DocumentSettings.LevelStyles);
         
         try
         {
@@ -77,6 +77,7 @@ public sealed class PictureCommands
 
             // Ищем $ для вставки поля.
             List<ChapterInfo> chapters = DocumentUtilities.FindNearChaptersByTemplate(doc, SymbolType.Picture);
+            int sCount = rs.DocumentSettings.GetSymbolCount(SymbolType.Picture);
 
             Word.Find find = findRange.Find;
             find.Text = "$";
@@ -84,7 +85,7 @@ public sealed class PictureCommands
             Word.Field picField = null;
             string forNumParts = string.Empty;
 
-            if (chapters.Count == 0 || chapters.Count == 1)
+            if (sCount == 1)
             {
                 find.Execute();
 
@@ -102,7 +103,7 @@ public sealed class PictureCommands
             else
             {
                 List<string> nums = new List<string>();
-                for (int i = 0; i < chapters.Count; i++)
+                for (int i = 0; i <= chapters.Count; i++)
                 {
                     find.Execute();
                     Word.Range hit = findRange.Duplicate;
@@ -110,7 +111,7 @@ public sealed class PictureCommands
                     dollar.End = dollar.Start + 1;
                     dollar.Text = "";
 
-                    if (i == chapters.Count - 1)
+                    if (i == chapters.Count)
                     {
                         picField = targetRange.Fields.Add(
                             dollar,
