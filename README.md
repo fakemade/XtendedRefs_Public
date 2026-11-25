@@ -2,7 +2,7 @@
 
 > Управление перекрёстными ссылками на рисунки, формулы, таблицы и литературу прямо в документе.
 
-[![GitHub release](https://img.shields.io/badge/dynamic/json?label=Release&query=$.tag_name&url=https%3A//api.github.com/repos/SelivanovU/XtendedRefs_sharp/releases/latest)](../../releases)
+[![GitHub release](https://img.shields.io/badge/dynamic/json?label=Release&query=$.tag_name&url=https%3A//api.github.com/repos/SelivanovU/XtendedRefs_sharp/releases/)](../../releases)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue)]()
 [![Language](https://img.shields.io/badge/language-C%23-orange)]()
 
