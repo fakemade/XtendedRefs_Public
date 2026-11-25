@@ -166,7 +166,6 @@ public static class DocumentUtilities
     }
     if (chapters.Count == 0)
     {
-        MessageBox.Show(@"No chapters found");
         return;
     }
     chapters.Sort((a, b) => chapterPositions[a].CompareTo(chapterPositions[b]));
@@ -472,10 +471,9 @@ public static class DocumentUtilities
         .Select(x => x.Info)
         .ToList();
 
-    if (nearest.Count != sCount && sCount > 0)
+    if (nearest.Count != sCount - 1  && sCount > 0)
     {
-        CommonCommands.ShowInfo($"sCount = {sCount}, nearest.Count = {nearest.Count}");
-        throw new Exception("Количество глав не совпадает с шаблоном. Очевидно, что курсор стоит не в том месте!");
+        throw new Exception("Количество глав не совпадает с шаблоном!");
     }
 
     return nearest;
@@ -542,5 +540,25 @@ public static class DocumentUtilities
                     
         }
         
+    }
+    public static List<string> GetParagraphStyleNames(Word.Document doc)
+    {
+        List<string> styles = new List<string>();
+
+        foreach (Word.Style style in doc.Styles)
+        {
+            try
+            {
+                if (style.Type == Word.WdStyleType.wdStyleTypeParagraph)
+                {
+                    styles.Add(style.NameLocal);
+                }
+            }
+            catch
+            {
+            }
+        }
+
+        return styles;
     }
 }

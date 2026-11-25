@@ -21,10 +21,13 @@ public class LiteratureCommands
         RuntimeStore rs = Singleton<RuntimeStore>.Instance;
         Word.Document doc = rs.Document;
         DocumentSettings documentSettings = rs.DocumentSettings;
-
+        
         bool previousScreenUpdating = doc.ActiveWindow.Application.ScreenUpdating;
         doc.ActiveWindow.Application.ScreenUpdating = false;
 
+        //Rescan chapters
+        DocumentUtilities.RescanDocument(doc, rs.DocumentSettings.LevelStyles);
+        
         try
         {
             //Собираем шаблон, стиль и разделитель
@@ -249,7 +252,7 @@ public class LiteratureCommands
             CommonCommands.ShowWarning("Источники литературы не найдены!", "Предупреждение");
             return;
         }
-
+        
         LiteratureInfo literature = srv.LiteraturePickerService.PickBookmark(doc);
         if (literature == null)
         {

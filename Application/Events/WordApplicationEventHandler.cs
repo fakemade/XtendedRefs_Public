@@ -10,17 +10,11 @@ namespace XtendedRefs.ComAddIn.Application.Events;
 internal sealed partial class WordApplicationEventHandler
 {
     private readonly Word.Application _application;
-    private readonly HashSet<System.Windows.Forms.Timer> _activeTimers = new HashSet<System.Windows.Forms.Timer>();
-
     private volatile bool _isMathTypeOpen;
-    private long _lastFormulaStart;
-    private long _lastFormulaEnd;
-    private IRibbonUI _ribbonUi;
 
     public WordApplicationEventHandler(IRibbonUI ribbonUi)
     {
         _application = AddInContext.Application;
-        _ribbonUi = ribbonUi;
     }
 
     public void Subscribe()

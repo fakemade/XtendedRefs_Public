@@ -27,7 +27,10 @@ public sealed class PictureCommands
         doc.ActiveWindow.View.Type = Word.WdViewType.wdNormalView;
         doc.ActiveWindow.Application.ScreenUpdating = false;
         doc.ActiveWindow.Application.Options.Pagination = false;
-
+        
+        //Rescan chapters
+        DocumentUtilities.RescanDocument(doc, rs.DocumentSettings.LevelStyles);
+        
         try
         {
             // Собираем шаблон, стиль и разделитель
@@ -169,6 +172,8 @@ public sealed class PictureCommands
         RuntimeStore rs = Singleton<RuntimeStore>.Instance;
         Word.Document doc = rs.Document;
         
+        
+        
         bool previousScreenUpdating = doc.ActiveWindow.Application.ScreenUpdating;
         bool prevPagination = doc.ActiveWindow.Application.Options.Pagination;
         Word.WdViewType oldView = doc.ActiveWindow.View.Type;
@@ -272,7 +277,7 @@ public sealed class PictureCommands
         RuntimeStore rs = Singleton<RuntimeStore>.Instance;
         Word.Document doc = rs.Document;
         ServiceLocator srv = Singleton<ServiceLocator>.Instance;
-
+        
         if (rs.PictureList.Pictures.Count == 0)
         {
             CommonCommands.ShowWarning("Рисунки не найдены!", "Предупреждение");

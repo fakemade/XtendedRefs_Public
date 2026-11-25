@@ -28,7 +28,11 @@ public class TableCommands
         doc.ActiveWindow.View.Type = Word.WdViewType.wdNormalView;
         doc.ActiveWindow.Application.ScreenUpdating = false;
         doc.ActiveWindow.Application.Options.Pagination = false;
+        
+        //Rescan chapters
 
+        DocumentUtilities.RescanDocument(doc, rs.DocumentSettings.LevelStyles);
+   
         try
         {
             // Собираем шаблон, стиль и разделитель
@@ -64,8 +68,6 @@ public class TableCommands
 
             // Ищем $ для вставки поля.
             List<ChapterInfo> chapters = DocumentUtilities.FindNearChaptersByTemplate(doc, SymbolType.Table);
-            
-            CommonCommands.ShowInfo(chapters.Count.ToString());
             
             Word.Find find = findRange.Find;
             find.Text = "$";
@@ -283,6 +285,7 @@ public class TableCommands
         RuntimeStore rs = Singleton<RuntimeStore>.Instance;
         Word.Document doc = rs.Document;
         ServiceLocator srv = Singleton<ServiceLocator>.Instance;
+        
 
         if (rs.TableList.Tables.Count == 0)
         {
@@ -290,7 +293,6 @@ public class TableCommands
             return;
         }
 
-        // Подбираем картинку из списка (сервис PicturePickerService будет зарегистрирован в ServiceLocator)
         TableInfo table = (TableInfo)srv.TablePickerService.PickBookmark(doc);
         if (table == null)
         {

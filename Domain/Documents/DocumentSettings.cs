@@ -78,7 +78,6 @@ public class DocumentSettings
         if (IsOpened == false)
         {
             IsOpened = true;
-            IsDirty = false;
             IsScanned = false;
             PictureSignTemplate = BasicTemplates.PictureSignTemplate;
             PictureInsertTemplate = BasicTemplates.PictureInsertTemplate;
@@ -139,11 +138,7 @@ public class DocumentSettings
     public bool TableCaptionNextLine { get; set; }
     
     public bool IsOpened { get; set; }
-
-    /// <summary>
-    /// Параметр "ленивого" обновления документа
-    /// </summary>
-    public bool IsDirty { get; set; }
+    
     
     public bool IsScanned { get; set; }
 
@@ -182,7 +177,6 @@ public class DocumentSettings
             }
             case SymbolType.Table:
             {
-                CommonCommands.ShowInfo(TableSignTemplate);
                 count = TableSignTemplate.Count( c => c == target );
                 break;
             }

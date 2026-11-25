@@ -92,26 +92,7 @@ internal sealed partial class WordApplicationEventHandler
         {
         }
     }
-
-    private void ScheduleTask(int delayMs, Action action)
-    {
-        System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer { Interval = delayMs };
-        _activeTimers.Add(timer);
-        timer.Tick += (s, e) =>
-        {
-            timer.Stop();
-            _activeTimers.Remove(timer);
-            timer.Dispose();
-            try
-            {
-                action();
-            }
-            catch (Exception ex)
-            {
-            }
-        };
-        timer.Start();
-    }
+    
 
     private static Word.Table FindTableContainingPosition(Word.Document document, long position)
     {

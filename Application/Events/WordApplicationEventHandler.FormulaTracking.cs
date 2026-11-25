@@ -20,8 +20,6 @@ internal sealed partial class WordApplicationEventHandler
                          string.Equals(classType, "Equation", StringComparison.Ordinal)))
                     {
                         _isMathTypeOpen = true;
-                        _lastFormulaStart = selection.Start;
-                        _lastFormulaEnd = selection.End;
                     }
                 }
             }

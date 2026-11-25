@@ -27,6 +27,7 @@ public sealed partial class Connect : IDTExtensibility2, IRibbonExtensibility
     private int _startIndex = 0;
     private const int PageSize = 5;
     private List<LevelStyleItem> _styles;
+    
 
     public static Connect Instance => _instance;
 }

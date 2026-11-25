@@ -18,7 +18,10 @@ public class FormulaCommands
         RuntimeStore rs = Singleton<RuntimeStore>.Instance;
         Word.Document doc = rs.Document;
         DocumentSettings documentSettings = rs.DocumentSettings;
-
+        
+        //Rescan chapters
+        DocumentUtilities.RescanDocument(doc, rs.DocumentSettings.LevelStyles);
+        
         Word.Selection selection = doc.Application.Selection;
         Word.Paragraph currentParagraph = selection.Paragraphs[1];
         //Проверка на выделение объекта MathType

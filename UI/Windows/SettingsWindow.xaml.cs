@@ -16,7 +16,6 @@ public partial class SettingsWindow : Window
 {
     private readonly Word.Document _document;
     private readonly RuntimeStore mObj;
-    private readonly DocumentCommandUtilities mUtility;
 
     public SettingsWindow(Word.Document document)
     {
@@ -25,7 +24,6 @@ public partial class SettingsWindow : Window
         try
         {
             mObj = Singleton<RuntimeStore>.Instance;
-            mUtility = Singleton<DocumentCommandUtilities>.Instance;
         }
         catch (Exception e)
         {
@@ -49,7 +47,7 @@ public partial class SettingsWindow : Window
         TableInsertTemplate.Text = mObj.DocumentSettings.TableInsertTemplate;
         
 
-        List<string> paraStyles = mUtility.GetParagraphStyleNames();
+        List<string> paraStyles = DocumentUtilities.GetParagraphStyleNames(_document);
         paraStyles.Sort(StringComparer.CurrentCultureIgnoreCase);
         
         LiteratureSymbolCombo.Items.Add("Нет");
